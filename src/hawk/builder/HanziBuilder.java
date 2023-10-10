@@ -11,6 +11,11 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 public class HanziBuilder {
+    /**
+     * Build the output art using the fast method.
+     * @param hanziArt the hanzi art object
+     * @throws IOException if the image is not found
+     */
     public void buildFastOutput(HanziArt hanziArt) throws IOException {
         BufferedImage resizedImage = Util.resizeImage(hanziArt.getImage(), hanziArt.getOutputWidth());
         StringBuilder outputArt = hanziArt.getOutputArt();
@@ -35,8 +40,10 @@ public class HanziBuilder {
     }
 
     /**
-     * Outputs a hanzi character for each 2x2 pixel block in the image.
-     * @throws NoSuchElementException if the stroke count map does not contain the stroke count of a character
+     * Build the output art using the complex method.
+     * @param hanziArt the hanzi art object
+     * @throws NoSuchElementException if the stroke count map or four corner code map is not found
+     * @throws IOException if the image is not found
      */
     public void buildComplexOutput(HanziArt hanziArt) throws NoSuchElementException, IOException {
         StringBuilder outputArt = hanziArt.getOutputArt();
@@ -117,6 +124,7 @@ public class HanziBuilder {
      * @return a random hanzi character from the stroke count map.
      * @throws NumberFormatException if the four corner code is not a number
      */
+    // todo: reduce number of input variables to just be grabbed from the object
     private String getRandomHanziFromCornerComplexity(int brightestPixelIndex, Map<String, String> strokeCountMap, Map<String, String> fourCornerCodeMap, int strokeCount, HanziArt hanziArt) throws NumberFormatException{
         // todo: this whole method makes no sense to me, please make it readable oh my GOSH!!!
         hanziArt.regenerateStrokeKeySet(strokeCountMap, strokeCount);

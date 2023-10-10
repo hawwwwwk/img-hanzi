@@ -23,6 +23,10 @@ public class HanziArt {
     private double blueBias = 1.0;
     private boolean outputProgress = false;
 
+    /**
+     *
+     * @param image
+     */
     public HanziArt(BufferedImage image){
         this.image = image;
     }
@@ -53,6 +57,7 @@ public class HanziArt {
 
     /**
      * Builds the output art.
+     * @param outputProgress whether to output build progress to the console
      * @throws IOException if the image is not found
      */
     public void build(boolean outputProgress) throws IOException {
@@ -137,6 +142,11 @@ public class HanziArt {
         return strokeKeys;
     }
 
+    /**
+     * Set's the build type for the HanziArt object.
+     * @param buildType The build type, {@code 0 = fast, 1 = complex}
+     * @throws RuntimeException if the build type is invalid
+     */
     public void setBuildType(int buildType){
         switch (buildType) {
             case 0:
@@ -146,10 +156,15 @@ public class HanziArt {
                 this.buildType = "complex";
                 break;
             default:
-                throw new RuntimeException("Invalid build type");
+                throw new RuntimeException("'"+buildType+"'"+" is an invalid build type.");
         }
     }
 
+    /**
+     * Set's the build type for the HanziArt object.
+     * @param buildType The build type, {@code "fast" or "complex"}
+     * @throws RuntimeException if the build type is invalid
+     */
     public void setBuildType(String buildType) {
         this.buildType = buildType;
     }
