@@ -10,7 +10,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+/**
+ * Builds the output art. Mostly used by internal methods,
+ * but you can create a HanziBuilder and use it yourself if
+ * you really want.
+ */
 public class HanziBuilder {
+
     /**
      * Build the output art using the fast method.
      * @param hanziArt the hanzi art object
@@ -22,13 +28,13 @@ public class HanziBuilder {
         int maxStrokeCount = hanziArt.getMaxStrokeCount();
 
         for (int y = 0; y < resizedImage.getHeight(); y++) {
-            if (hanziArt.getOutputProgress()){
+            if (hanziArt.isOutputProgress()){
                 System.out.println("...building row " + (y+1) + " of " + resizedImage.getHeight());
             }
 
             for (int x = 0; x < resizedImage.getWidth(); x++) {
                 int pixelBrightness = Util.getPixelBrightness(
-                        resizedImage, x, y, hanziArt.getRedBias(), hanziArt.getGreenBias(), hanziArt.getBlueBias(), false
+                        resizedImage, x, y, hanziArt.getRedBias(), hanziArt.getGreenBias(), hanziArt.getBlueBias(), hanziArt.isInverted()
                 );
                 int pixelStrokeCount = maxStrokeCount - (pixelBrightness) * (maxStrokeCount - 1) / 255;
                 String pixelHanzi = getRandomHanziFromStrokeCount(pixelStrokeCount, hanziArt);
@@ -124,7 +130,7 @@ public class HanziBuilder {
      * @return a random hanzi character from the stroke count map.
      * @throws NumberFormatException if the four corner code is not a number
      */
-    // todo: reduce number of input variables to just be grabbed from the object
+    // todo: reduce number of input variables, just grab from the object
     private String getRandomHanziFromCornerComplexity(int brightestPixelIndex, Map<String, String> strokeCountMap, Map<String, String> fourCornerCodeMap, int strokeCount, HanziArt hanziArt) throws NumberFormatException{
         // todo: this whole method makes no sense to me, please make it readable oh my GOSH!!!
         hanziArt.regenerateStrokeKeySet(strokeCountMap, strokeCount);

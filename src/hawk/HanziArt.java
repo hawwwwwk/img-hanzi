@@ -22,6 +22,7 @@ public class HanziArt {
     private double greenBias = 1.0;
     private double blueBias = 1.0;
     private boolean outputProgress = false;
+    private boolean inverted = false;
 
     // todo: add documentation
     public HanziArt(BufferedImage image){
@@ -200,11 +201,19 @@ public class HanziArt {
         this.blueBias = blueBias;
     }
 
+    public boolean isOutputProgress() {
+        return outputProgress;
+    }
+
     public void setOutputProgress(boolean outputProgress) {
         this.outputProgress = outputProgress;
     }
 
-    public boolean getOutputProgress() {
-        return outputProgress;
+    public boolean isInverted() {
+        return inverted;
+    }
+
+    public void setInverted(boolean inverted) {
+        this.inverted = inverted;
     }
 }

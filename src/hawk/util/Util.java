@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.util.*;
 
 public class Util {
-    public static final Scanner input = new Scanner(System.in);
 
     /**
      * Finds the greatest value in an ArrayList
@@ -55,6 +54,7 @@ public class Util {
      * @param number the number to check
      * @return the complexity of the number
      */
+    // todo: find a use for this class. unsure why it's unused...
     public static int getComplexity(int number) {
         return switch (number) {
             case 1 -> 10;
@@ -132,12 +132,11 @@ public class Util {
 
     /**
      * Resizes an image to a specified width, maintaining aspect ratio.
-     * @param image
-     * @param outputWidth
-     * @return
-     * @throws IOException
+     * @param image the image to resize
+     * @param outputWidth the width to resize to in {@code pixels}
+     * @return the resized image
      */
-    public static BufferedImage resizeImage(BufferedImage image, int outputWidth) throws IOException {
+    public static BufferedImage resizeImage(BufferedImage image, int outputWidth){
         int outputHeight = (int) (outputWidth * (double) image.getHeight() / image.getWidth());
         BufferedImage resizedImage = new BufferedImage(outputWidth, outputHeight, image.getType());
 
@@ -153,23 +152,13 @@ public class Util {
      * @param image the image to get the pixel brightness from
      * @param x the x coordinate of the pixel
      * @param y the y coordinate of the pixel
-     * @return the brightness of a pixel in the range 0-255
-     */
-    public static int getPixelBrightness(BufferedImage image, int x, int y) {
-        return image.getRGB(x, y) & 0xFF;
-    }
-
-    /**
-     * Returns the brightness of a pixel in the range 0-255
-     * @param image the image to get the pixel brightness from
-     * @param x the x coordinate of the pixel
-     * @param y the y coordinate of the pixel
      * @param redBias how much to weight the red component
      * @param greenBias how much to weight the green component
      * @param blueBias how much to weight the blue component
      * @param inverted whether to invert the weight on the components or not
      * @return the brightness of a pixel in the range 0-255
      */
+    // todo: add use for inverted
     public static int getPixelBrightness(BufferedImage image, int x, int y, double redBias, double greenBias, double blueBias, boolean inverted) {
 
         int pixel = image.getRGB(x, y);
