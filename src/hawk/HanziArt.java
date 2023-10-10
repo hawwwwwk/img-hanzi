@@ -5,9 +5,7 @@ import hawk.util.Util;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
@@ -15,59 +13,105 @@ public class HanziArt {
 
     public static final Random random = new Random();
     public static HashSet<String> strokeKeys = new HashSet<>();
-    public static StringBuilder outputArt = new StringBuilder();
+    public StringBuilder outputArt = new StringBuilder();
+    private BufferedImage image;        // the image to process
+    private int outputWidth = 30;       // the width of the output image
+    private int maxStrokeCount = 25;    // 1-25, more usually means more detail but longer processing time
+    private Map<String, String> strokeCountMap; // hashmap of unicode keys and stroke counts
+    private Map<String, String> fourCornerCodeMap; // hashmap of unicode keys and four corner codes
+    private String buildType = "fast"; // fast or complex
+    private int redBias = 1;
+    private int greenBias = 1;
+    private int blueBias = 1;
 
-    public static void main(String[] args) throws IOException {
-        // just for testing, todo: remove later
-        long startTime = System.nanoTime();
+    public HanziArt(BufferedImage image){
+        this.image = image;
+    }
+    public HanziArt(BufferedImage image, int outputWidth){
+        this.image = image;
+        this.outputWidth = outputWidth;
+    }
 
-        // user inputs
-        System.out.println("...loading inputs");
-        String imgPath = "C:\\Users\\ethan\\Project Storage\\ImgToHanzi\\src\\test.jpg";
-        BufferedImage image = ImageIO.read(new File(imgPath));
-        String unihanDictionaryPath = "C:\\Users\\ethan\\Project Storage\\ImgToHanzi\\src\\Unihan_DictionaryLikeData.txt";
-        String unihanIRGSourcesPath = "C:\\Users\\ethan\\Project Storage\\ImgToHanzi\\src\\Unihan_IRGSources.txt";
-        int outputWidth = 75;
-        int maxStrokeCount = 25; // 1-25, more usually means more detail but longer processing time
+    public HanziArt(BufferedImage image, int outputWidth, String unihanDictionaryPath, String unihanIRGSourcesPath) throws IOException {
+        this.image = image;
+        this.outputWidth = outputWidth;
+        this.strokeCountMap = Util.hashMapFromTXT("kTotalStrokes", unihanIRGSourcesPath);
+        this.fourCornerCodeMap = Util.hashMapFromTXT("kFourCornerCode", unihanDictionaryPath);
+    }
 
-        Map<String, String> strokeCountMap = hashMapFromTXT("kTotalStrokes", unihanIRGSourcesPath);
-        // for complex image
-        Map<String, String> fourCornerCodeMap = hashMapFromTXT("kFourCornerCode", unihanDictionaryPath);
+    public HanziArt(BufferedImage image, int outputWidth, String unihanDictionaryPath, String unihanIRGSourcesPath, String buildType) throws IOException {
+        this.image = image;
+        this.outputWidth = outputWidth;
+        this.strokeCountMap = Util.hashMapFromTXT("kTotalStrokes", unihanIRGSourcesPath);
+        this.fourCornerCodeMap = Util.hashMapFromTXT("kFourCornerCode", unihanDictionaryPath);
+        this.buildType = buildType;
+    }
 
+    public HanziArt(BufferedImage image, int outputWidth, String unihanDictionaryPath, String unihanIRGSourcesPath, int buildType) throws IOException {
+        this.image = image;
+        this.outputWidth = outputWidth;
+        this.strokeCountMap = Util.hashMapFromTXT("kTotalStrokes", unihanIRGSourcesPath);
+        this.fourCornerCodeMap = Util.hashMapFromTXT("kFourCornerCode", unihanDictionaryPath);
+        this.setBuildType(buildType);
+    }
 
-        System.out.println("...resizing image 1");
-        BufferedImage resizedImage = resizeImage(image, outputWidth);
-        ImageIO.write(resizedImage, "png", new File("C:\\Users\\ethan\\Project Storage\\ImgToHanzi\\src\\resized1.png"));
-        // for complex image
-        System.out.println("...resizing image 2");
-        BufferedImage resizedImage2x = resizeImage(image, outputWidth * 2);
-        ImageIO.write(resizedImage2x, "png", new File("C:\\Users\\ethan\\Project Storage\\ImgToHanzi\\src\\resized2.png"));
-
-        fastOutput(image, maxStrokeCount, strokeCountMap, outputWidth);
-        //complexOutput(resizedImage, resizedImage2x, maxStrokeCount, strokeCountMap, fourCornerCodeMap);
-
-        long endTime = System.nanoTime();
-        long duration = (endTime - startTime) / 1000000;
-        System.out.println("Finished in " + duration + " ms");
+    public static void main(String[] args){
+//        // just for testing, todo: remove later
+//        long startTime = System.nanoTime();
+//
+//        // user inputs
+//        System.out.println("...loading inputs");
+//        String imgPath = "C:\\Users\\ethan\\Project Storage\\ImgToHanzi\\src\\test.jpg";
+//        BufferedImage image = ImageIO.read(new File(imgPath));
+//        String unihanDictionaryPath = "C:\\Users\\ethan\\Project Storage\\ImgToHanzi\\src\\Unihan_DictionaryLikeData.txt";
+//        String unihanIRGSourcesPath = "C:\\Users\\ethan\\Project Storage\\ImgToHanzi\\src\\Unihan_IRGSources.txt";
+//        int outputWidth = 75;
+//
+//
+//        System.out.println("...resizing image 1");
+//        BufferedImage resizedImage = resizeImage(image, outputWidth);
+//        ImageIO.write(resizedImage, "png", new File("C:\\Users\\ethan\\Project Storage\\ImgToHanzi\\src\\resized1.png"));
+//        // for complex image
+//        System.out.println("...resizing image 2");
+//        BufferedImage resizedImage2x = resizeImage(image, outputWidth * 2);
+//        ImageIO.write(resizedImage2x, "png", new File("C:\\Users\\ethan\\Project Storage\\ImgToHanzi\\src\\resized2.png"));
+//
+//        long endTime = System.nanoTime();
+//        long duration = (endTime - startTime) / 1000000;
+//        System.out.println(duration + " ms");
     }
 
     /**
-     * Outputs a hanzi character for each pixel in the image.
-     * @param image the image to process
-     * @param maxStrokeCount the max stroke count for the characters
-     * @param strokeCountMap the stroke count map
+     * Builds the output art.
+     * @throws IOException if the image is not found
      */
-    public static void fastOutput(BufferedImage image, int maxStrokeCount, Map<String, String> strokeCountMap, int outputWidth) throws IOException{
-        BufferedImage resizedImage = resizeImage(image, outputWidth);
+    public void build() throws IOException {
+        switch (this.getBuildType()) {
+            case "fast":
+                this.fastOutput();
+                break;
+            case "complex":
+                this.complexOutput();
+                break;
+            default:
+                throw new RuntimeException("Invalid build type");
+        }
+    }
+
+    private void fastOutput() throws IOException{
+        BufferedImage resizedImage = Util.resizeImage(this.getImage(), outputWidth);
+        StringBuilder outputArt = this.getOutputArt();
+        int maxStrokeCount = this.getMaxStrokeCount();
+        Map<String, String> strokeCountMap = this.getStrokeCountMap();
 
         for (int y = 0; y < resizedImage.getHeight(); y++) {
             System.out.println((y+1) + "/" + resizedImage.getHeight());
 
             for (int x = 0; x < resizedImage.getWidth(); x++) {
-                int pixelBrightness = getPixelBrightness(resizedImage, x, y);
+                int pixelBrightness = Util.getPixelBrightness(resizedImage, x, y);
                 int pixelStrokeCount = maxStrokeCount - (pixelBrightness) * (maxStrokeCount - 1) / 255;
                 String pixelHanzi = getRandomHanziFromStrokeCount(pixelStrokeCount, strokeCountMap, strokeKeys);
-                outputArt.append(pixelHanzi);
+                this.getOutputArt().append(pixelHanzi);
             }
             outputArt.append('\n');
         }
@@ -115,7 +159,8 @@ public class HanziArt {
     }
 
     /**
-     * This method is called by regenerateStrokeKeySet() if the stroke count of the image does not match the stroke count of the cached keys.
+     * Called by regenerateStrokeKeySet() if the stroke count
+     * of the image does not match the stroke count of the cached keys.
      * @param strokeCountMap
      * @param strokeCount
      */
@@ -125,35 +170,6 @@ public class HanziArt {
                 strokeKeys.add(entry.getKey());
             }
         }
-    }
-
-    /**
-     * Resizes an image to a specified width, maintaining aspect ratio.
-     * @param image
-     * @param outputWidth
-     * @return
-     * @throws IOException
-     */
-    public static BufferedImage resizeImage(BufferedImage image, int outputWidth) throws IOException {
-        int outputHeight = (int) (outputWidth * (double) image.getHeight() / image.getWidth());
-        BufferedImage resizedImage = new BufferedImage(outputWidth, outputHeight, image.getType());
-
-        Graphics2D g = resizedImage.createGraphics();
-        g.drawImage(image, 0, 0, outputWidth, outputHeight, null);
-        g.dispose();
-
-        return resizedImage;
-    }
-
-    /**
-     * Returns the brightness of a pixel in the range 0-255
-     * @param image the image to get the pixel brightness from
-     * @param x the x coordinate of the pixel
-     * @param y the y coordinate of the pixel
-     * @return the brightness of a pixel in the range 0-255
-     */
-    public static int getPixelBrightness(BufferedImage image, int x, int y) {
-        return image.getRGB(x, y) & 0xFF;
     }
 
     /**
@@ -179,42 +195,16 @@ public class HanziArt {
     }
 
     /**
-     * Returns a hashmap from a txt file.
-     * @param requestedValue the value to search for in the txt file
-     * @param txtPath the path to the txt file
-     * @return a hashmap from a txt file.
-     * @throws IOException if the txt file is not found
-     */
-    public static Map<String, String> hashMapFromTXT(String requestedValue, String txtPath) throws IOException{
-        Map<String, String> outputMap = new HashMap<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(txtPath))) {
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith("#")) {
-                    continue;
-                }
-
-                String[] parts = line.split("\t");
-                if (parts.length == 3 && parts[1].equals(requestedValue)) {
-                    outputMap.put(parts[0], parts[2]);
-                }
-            }
-            System.out.println("...loaded " + requestedValue + " map");
-            return outputMap;
-        }
-    }
-
-    /**
      * Outputs a hanzi character for each 2x2 pixel block in the image.
-     * @param resizedImage the image to process
-     * @param resizedImage2x the image to process (2x size of resizedImage)
-     * @param maxStrokeCount the max stroke count for the characters
-     * @param strokeCountMap the stroke count map
-     * @param fourCornerCodeMap the four corner code map
      * @throws NoSuchElementException if the stroke count map does not contain the stroke count of a character
      */
-    public static void complexOutput(BufferedImage resizedImage, BufferedImage resizedImage2x, int maxStrokeCount, Map<String, String> strokeCountMap, Map<String, String> fourCornerCodeMap) throws NoSuchElementException {
+    private void complexOutput() throws NoSuchElementException, IOException {
+        StringBuilder outputArt = this.getOutputArt();
+        BufferedImage resizedImage = Util.resizeImage(image, this.getOutputWidth());
+        BufferedImage resizedImage2x = Util.resizeImage(image, this.getOutputWidth() * 2);
+        int maxStrokeCount = this.getMaxStrokeCount();
+        Map<String, String> strokeCountMap = this.getStrokeCountMap();
+        Map<String, String> fourCornerCodeMap = this.getFourCornerCodeMap();
 
         // iterate through image in 2x2 blocks
         for (int y = 0; y < resizedImage2x.getHeight(); y += 2) {
@@ -242,10 +232,7 @@ public class HanziArt {
                 int brightestPixelIndex = Util.findGreatestValue(blockBrightness, true);
                 int brightestPixelComplexity = Util.getComplexity((brightestPixel) * (8) / 255);
 
-                //System.out.println("brightest pixel: " + brightestPixel + " at index " + brightestPixelIndex + " with complexity " + brightestPixelComplexity);
-
                 String hanzi = getRandomHanziFromCornerComplexity(brightestPixel, brightestPixelIndex, brightestPixelComplexity, strokeCountMap, fourCornerCodeMap, pixelStrokeCount, maxStrokeCount);
-                //System.out.println("x: "+x+" y: "+y+" hanzi: "+hanzi);
                 outputArt.append(hanzi);
             }
 
@@ -258,7 +245,7 @@ public class HanziArt {
         outputArtString = outputArtString.replaceAll(" ", Util.unicodeKeyToString("U+2003"));
 
         // Print the entire outputArt after processing all rows
-        System.out.print(outputArtString);
+        this.setOutputArt(outputArt);
     }
 
     /**
@@ -316,5 +303,103 @@ public class HanziArt {
             }
         }
         return Util.unicodeKeyToString("U+3000"); // if the function reaches this something weird went wrong
+    }
+
+    private void setOutputArt(StringBuilder outputArt){
+        this.outputArt = outputArt;
+    }
+
+    public StringBuilder getOutputArt() {
+        return outputArt;
+    }
+
+    public void setImage(BufferedImage image) {
+        this.image = image;
+    }
+
+    public BufferedImage getImage() {
+        return image;
+    }
+
+    public void setOutputWidth(int outputWidth) {
+        this.outputWidth = outputWidth;
+    }
+    public int getOutputWidth() {
+        return outputWidth;
+    }
+
+    public void setMaxStrokeCount(int maxStrokeCount) {
+        this.maxStrokeCount = maxStrokeCount;
+    }
+
+    public int getMaxStrokeCount() {
+        return maxStrokeCount;
+    }
+
+    public void setStrokeCountMap(String unihanIRGSourcesPath) throws IOException {
+        this.strokeCountMap = Util.hashMapFromTXT("kTotalStrokes", unihanIRGSourcesPath);
+    }
+
+    public Map<String, String> getStrokeCountMap() {
+        return strokeCountMap;
+    }
+
+    public void setFourCornerCodeMap(String unihanDictionaryPath) throws IOException {
+        this.fourCornerCodeMap = Util.hashMapFromTXT("kFourCornerCode", unihanDictionaryPath);
+    }
+
+    public Map<String, String> getFourCornerCodeMap() {
+        return fourCornerCodeMap;
+    }
+
+    public void setBuildType(int buildType){
+        switch (buildType) {
+            case 0:
+                this.buildType = "fast";
+                break;
+            case 1:
+                this.buildType = "complex";
+                break;
+            default:
+                throw new RuntimeException("Invalid build type");
+        }
+    }
+
+    public void setBuildType(String buildType) {
+        this.buildType = buildType;
+    }
+
+    public String getBuildType() {
+        return buildType;
+    }
+
+    public void setRedBias(int redBias) {
+        this.redBias = redBias;
+    }
+
+    public int getRedBias() {
+        return redBias;
+    }
+
+    public void setGreenBias(int greenBias) {
+        this.greenBias = greenBias;
+    }
+
+    public int getGreenBias() {
+        return greenBias;
+    }
+
+    public void setBlueBias(int blueBias) {
+        this.blueBias = blueBias;
+    }
+
+    public int getBlueBias() {
+        return blueBias;
+    }
+
+    public void setBias(int redBias, int greenBias, int blueBias) {
+        this.redBias = redBias;
+        this.greenBias = greenBias;
+        this.blueBias = blueBias;
     }
 }

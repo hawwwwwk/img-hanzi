@@ -1,7 +1,12 @@
 package hawk.util;
-import java.util.Objects;
-import java.util.Scanner;
-import java.util.ArrayList;
+
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.*;
+
 public class Util {
     public static final Scanner input = new Scanner(System.in);
 
@@ -45,7 +50,8 @@ public class Util {
     }
 
     /**
-     * Returns the complexity of a number, based of visual density
+     * Returns the complexity of a number, based of character
+     * visual density. Used mostly in the HanziArt classes.
      * @param number the number to check
      * @return the complexity of the number
      */
@@ -96,5 +102,61 @@ public class Util {
     public static String unicodeKeyToString(String code){
         int codePoint = Integer.parseInt(code.substring(2), 16); // Remove the leading "\\"
         return new String(Character.toChars(codePoint));
+    }
+
+    /**
+     * Returns a HashMap formatted from a txt file.
+     * @param requestedValue the value to search for in the txt file
+     * @param txtPath the path to the txt file
+     * @return a hashmap from a txt file.
+     * @throws IOException if the txt file is not found
+     */
+    public static Map<String, String> hashMapFromTXT(String requestedValue, String txtPath) throws IOException{
+        Map<String, String> outputMap = new HashMap<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(txtPath))) {
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("#")) {
+                    continue;
+                }
+
+                String[] parts = line.split("\t");
+                if (parts.length == 3 && parts[1].equals(requestedValue)) {
+                    outputMap.put(parts[0], parts[2]);
+                }
+            }
+            System.out.println("...loaded " + requestedValue + " map");
+            return outputMap;
+        }
+    }
+
+    /**
+     * Resizes an image to a specified width, maintaining aspect ratio.
+     * @param image
+     * @param outputWidth
+     * @return
+     * @throws IOException
+     */
+    public static BufferedImage resizeImage(BufferedImage image, int outputWidth) throws IOException {
+        int outputHeight = (int) (outputWidth * (double) image.getHeight() / image.getWidth());
+        BufferedImage resizedImage = new BufferedImage(outputWidth, outputHeight, image.getType());
+
+        Graphics2D g = resizedImage.createGraphics();
+        g.drawImage(image, 0, 0, outputWidth, outputHeight, null);
+        g.dispose();
+
+        return resizedImage;
+    }
+
+    /**
+     * Returns the brightness of a pixel in the range 0-255
+     * @param image the image to get the pixel brightness from
+     * @param x the x coordinate of the pixel
+     * @param y the y coordinate of the pixel
+     * @return the brightness of a pixel in the range 0-255
+     */
+    public static int getPixelBrightness(BufferedImage image, int x, int y) {
+        return image.getRGB(x, y) & 0xFF;
     }
 }
