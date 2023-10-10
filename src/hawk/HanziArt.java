@@ -23,10 +23,7 @@ public class HanziArt {
     private double blueBias = 1.0;
     private boolean outputProgress = false;
 
-    /**
-     *
-     * @param image
-     */
+    // todo: add documentation
     public HanziArt(BufferedImage image){
         this.image = image;
     }
