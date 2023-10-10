@@ -13,11 +13,11 @@ public class HanziArtTester {
         BufferedImage image = ImageIO.read(new File(imgPath));
         String unihanDictionaryPath = ".\\src\\Unihan_DictionaryLikeData.txt";
         String unihanIRGSourcesPath = ".\\src\\Unihan_IRGSources.txt";
-        int outputWidth = 15;
+        int outputWidth = 40;
 
         HanziArt ha = new HanziArt(image, outputWidth, unihanDictionaryPath, unihanIRGSourcesPath);
         ha.setBuildType(1); // 0 = fast, 1 = complex
-        ha.setBias(1.1, 1.1, 1.1);
+        ha.setBias(1.02, 1.2, 1.05);
         ha.build(true);
         System.out.println(ha.getOutputArt());
     }
