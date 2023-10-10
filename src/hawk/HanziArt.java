@@ -1,4 +1,6 @@
-import util.Util;
+package hawk;
+
+import hawk.util.Util;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -9,14 +11,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
-public class Main {
+public class HanziArt {
 
     public static final Random random = new Random();
     public static HashSet<String> strokeKeys = new HashSet<>();
     public static StringBuilder outputArt = new StringBuilder();
 
     public static void main(String[] args) throws IOException {
-
+        // just for testing, todo: remove later
         long startTime = System.nanoTime();
 
         // user inputs
@@ -25,7 +27,7 @@ public class Main {
         BufferedImage image = ImageIO.read(new File(imgPath));
         String unihanDictionaryPath = "C:\\Users\\ethan\\Project Storage\\ImgToHanzi\\src\\Unihan_DictionaryLikeData.txt";
         String unihanIRGSourcesPath = "C:\\Users\\ethan\\Project Storage\\ImgToHanzi\\src\\Unihan_IRGSources.txt";
-        int outputWidth = 175;
+        int outputWidth = 75;
         int maxStrokeCount = 25; // 1-25, more usually means more detail but longer processing time
 
         Map<String, String> strokeCountMap = hashMapFromTXT("kTotalStrokes", unihanIRGSourcesPath);
@@ -41,8 +43,8 @@ public class Main {
         BufferedImage resizedImage2x = resizeImage(image, outputWidth * 2);
         ImageIO.write(resizedImage2x, "png", new File("C:\\Users\\ethan\\Project Storage\\ImgToHanzi\\src\\resized2.png"));
 
-        //simpleOutput(resizedImage, maxStrokeCount, strokeCountMap);
-        complexOutput(resizedImage, resizedImage2x, maxStrokeCount, strokeCountMap, fourCornerCodeMap);
+        fastOutput(image, maxStrokeCount, strokeCountMap, outputWidth);
+        //complexOutput(resizedImage, resizedImage2x, maxStrokeCount, strokeCountMap, fourCornerCodeMap);
 
         long endTime = System.nanoTime();
         long duration = (endTime - startTime) / 1000000;
@@ -51,13 +53,15 @@ public class Main {
 
     /**
      * Outputs a hanzi character for each pixel in the image.
-     * @param resizedImage the image to process
+     * @param image the image to process
      * @param maxStrokeCount the max stroke count for the characters
      * @param strokeCountMap the stroke count map
      */
-    public static void simpleOutput(BufferedImage resizedImage, int maxStrokeCount, Map<String, String> strokeCountMap) {
+    public static void fastOutput(BufferedImage image, int maxStrokeCount, Map<String, String> strokeCountMap, int outputWidth) throws IOException{
+        BufferedImage resizedImage = resizeImage(image, outputWidth);
+
         for (int y = 0; y < resizedImage.getHeight(); y++) {
-            System.out.println("...building row " + (y+1) + " of " + resizedImage.getHeight());
+            System.out.println((y+1) + "/" + resizedImage.getHeight());
 
             for (int x = 0; x < resizedImage.getWidth(); x++) {
                 int pixelBrightness = getPixelBrightness(resizedImage, x, y);
@@ -282,7 +286,7 @@ public class Main {
                 continue;
             }
 
-            // todo: clean this up
+            // todo: clean this up !! idk what im looking at !!
             // if the four corner code is 0000.0, then the character is not in the dictionary
             if (fourCornerCodeMap.get(unicodeKey).equals("0000.0") || strokeCount == 1) {
                 if (unicodeKey.length() <= 6 && !unicodeKey.contains("F")) {

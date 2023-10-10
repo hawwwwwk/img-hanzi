@@ -1,4 +1,4 @@
-package util;
+package hawk.util;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.ArrayList;
