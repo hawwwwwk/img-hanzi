@@ -16,7 +16,8 @@ public class HanziArtTester {
         int outputWidth = 15;
 
         HanziArt ha = new HanziArt(image, outputWidth, unihanDictionaryPath, unihanIRGSourcesPath);
-        ha.setBuildType(0);
+        ha.setBuildType(1);
+        ha.setBias(1.1, 1.1, 1.1);
         ha.build(true);
         System.out.println(ha.getOutputArt());
     }

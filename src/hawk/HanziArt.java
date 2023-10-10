@@ -17,9 +17,9 @@ public class HanziArt {
     private Map<String, String> strokeCountMap; // hashmap of unicode keys and stroke counts
     private Map<String, String> fourCornerCodeMap; // hashmap of unicode keys and four corner codes
     private String buildType = "fast"; // fast or complex
-    private int redBias = 1;
-    private int greenBias = 1;
-    private int blueBias = 1;
+    private double redBias = 1.0;
+    private double greenBias = 1.0;
+    private double blueBias = 1.0;
     private boolean outputProgress = false;
 
     public HanziArt(BufferedImage image){
@@ -189,11 +189,6 @@ public class HanziArt {
             outputArt.append('\n');
         }
 
-        // final check for spaces
-        String outputArtString = String.valueOf(outputArt);
-        outputArtString = outputArtString.replaceAll(" ", Util.unicodeKeyToString("U+2003"));
-
-        // Print the entire outputArt after processing all rows
         this.setOutputArt(outputArt);
     }
 
@@ -319,31 +314,31 @@ public class HanziArt {
         return buildType;
     }
 
-    public void setRedBias(int redBias) {
+    public void setRedBias(double redBias) {
         this.redBias = redBias;
     }
 
-    public int getRedBias() {
+    public double getRedBias() {
         return redBias;
     }
 
-    public void setGreenBias(int greenBias) {
+    public void setGreenBias(double greenBias) {
         this.greenBias = greenBias;
     }
 
-    public int getGreenBias() {
+    public double getGreenBias() {
         return greenBias;
     }
 
-    public void setBlueBias(int blueBias) {
+    public void setBlueBias(double blueBias) {
         this.blueBias = blueBias;
     }
 
-    public int getBlueBias() {
+    public double getBlueBias() {
         return blueBias;
     }
 
-    public void setBias(int redBias, int greenBias, int blueBias) {
+    public void setBias(double redBias, double greenBias, double blueBias) {
         this.redBias = redBias;
         this.greenBias = greenBias;
         this.blueBias = blueBias;
