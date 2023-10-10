@@ -126,7 +126,6 @@ public class Util {
                     outputMap.put(parts[0], parts[2]);
                 }
             }
-            System.out.println("...loaded " + requestedValue + " map");
             return outputMap;
         }
     }
@@ -158,5 +157,27 @@ public class Util {
      */
     public static int getPixelBrightness(BufferedImage image, int x, int y) {
         return image.getRGB(x, y) & 0xFF;
+    }
+
+    /**
+     * Returns the brightness of a pixel in the range 0-255
+     * @param image the image to get the pixel brightness from
+     * @param x the x coordinate of the pixel
+     * @param y the y coordinate of the pixel
+     * @param redBias how much to weight the red component
+     * @param greenBias how much to weight the green component
+     * @param blueBias how much to weight the blue component
+     * @param inverted whether to invert the weight on the components or not
+     * @return the brightness of a pixel in the range 0-255
+     */
+    public static int getPixelBrightness(BufferedImage image, int x, int y, double redBias, double greenBias, double blueBias, boolean inverted) {
+
+        int pixel = image.getRGB(x, y);
+        int red = (pixel >> 16) & 0xFF;   // Extract the red component
+        int green = (pixel >> 8) & 0xFF;  // Extract the green component
+        int blue = pixel & 0xFF;          // Extract the blue component
+
+        // Calculate the weighted average based on biases
+        return (int) (red * redBias + green * greenBias + blue * blueBias) / 3;
     }
 }

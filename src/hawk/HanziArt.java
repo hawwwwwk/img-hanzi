@@ -2,10 +2,7 @@ package hawk;
 
 import hawk.util.Util;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -23,6 +20,7 @@ public class HanziArt {
     private int redBias = 1;
     private int greenBias = 1;
     private int blueBias = 1;
+    private boolean outputProgress = false;
 
     public HanziArt(BufferedImage image){
         this.image = image;
@@ -55,32 +53,6 @@ public class HanziArt {
         this.setBuildType(buildType);
     }
 
-    public static void main(String[] args){
-//        // just for testing, todo: remove later
-//        long startTime = System.nanoTime();
-//
-//        // user inputs
-//        System.out.println("...loading inputs");
-//        String imgPath = "C:\\Users\\ethan\\Project Storage\\ImgToHanzi\\src\\test.jpg";
-//        BufferedImage image = ImageIO.read(new File(imgPath));
-//        String unihanDictionaryPath = "C:\\Users\\ethan\\Project Storage\\ImgToHanzi\\src\\Unihan_DictionaryLikeData.txt";
-//        String unihanIRGSourcesPath = "C:\\Users\\ethan\\Project Storage\\ImgToHanzi\\src\\Unihan_IRGSources.txt";
-//        int outputWidth = 75;
-//
-//
-//        System.out.println("...resizing image 1");
-//        BufferedImage resizedImage = resizeImage(image, outputWidth);
-//        ImageIO.write(resizedImage, "png", new File("C:\\Users\\ethan\\Project Storage\\ImgToHanzi\\src\\resized1.png"));
-//        // for complex image
-//        System.out.println("...resizing image 2");
-//        BufferedImage resizedImage2x = resizeImage(image, outputWidth * 2);
-//        ImageIO.write(resizedImage2x, "png", new File("C:\\Users\\ethan\\Project Storage\\ImgToHanzi\\src\\resized2.png"));
-//
-//        long endTime = System.nanoTime();
-//        long duration = (endTime - startTime) / 1000000;
-//        System.out.println(duration + " ms");
-    }
-
     /**
      * Builds the output art.
      * @throws IOException if the image is not found
@@ -98,36 +70,47 @@ public class HanziArt {
         }
     }
 
+    /**
+     * Builds the output art.
+     * @throws IOException if the image is not found
+     */
+    public void build(boolean outputProgress) throws IOException {
+        this.outputProgress = outputProgress;
+        this.build();
+    }
+
     private void fastOutput() throws IOException{
         BufferedImage resizedImage = Util.resizeImage(this.getImage(), outputWidth);
         StringBuilder outputArt = this.getOutputArt();
         int maxStrokeCount = this.getMaxStrokeCount();
-        Map<String, String> strokeCountMap = this.getStrokeCountMap();
 
         for (int y = 0; y < resizedImage.getHeight(); y++) {
-            System.out.println((y+1) + "/" + resizedImage.getHeight());
+            if (outputProgress){
+                System.out.println("...building row " + (y+1) + " of " + resizedImage.getHeight());
+            }
 
             for (int x = 0; x < resizedImage.getWidth(); x++) {
-                int pixelBrightness = Util.getPixelBrightness(resizedImage, x, y);
+                int pixelBrightness = Util.getPixelBrightness(resizedImage, x, y, redBias, greenBias, blueBias, false);
                 int pixelStrokeCount = maxStrokeCount - (pixelBrightness) * (maxStrokeCount - 1) / 255;
-                String pixelHanzi = getRandomHanziFromStrokeCount(pixelStrokeCount, strokeCountMap, strokeKeys);
-                this.getOutputArt().append(pixelHanzi);
+                String pixelHanzi = getRandomHanziFromStrokeCount(pixelStrokeCount, strokeKeys);
+                outputArt.append(pixelHanzi);
             }
             outputArt.append('\n');
         }
-        System.out.println(outputArt);
+        this.setOutputArt(outputArt);
     }
 
     /**
      * Returns a random hanzi character from the stroke count map.
-     * @param pixelStrokeCount
-     * @param strokeCountMap
-     * @param keys
+     * @param strokeCount the stroke count of the character (within the pixel)
+     * @param keys the keys to choose from
      * @return a random hanzi character from the stroke count map.
      */
-    public static String getRandomHanziFromStrokeCount(int pixelStrokeCount, Map<String, String> strokeCountMap, HashSet<String> keys){
+    private String getRandomHanziFromStrokeCount(int strokeCount, HashSet<String> keys){
+        Map<String, String> strokeCountMap = this.getStrokeCountMap();
+
         // caching algorithm, matches stroke count
-        regenerateStrokeKeySet(strokeCountMap, pixelStrokeCount);
+        regenerateStrokeKeySet(strokeCountMap, strokeCount);
 
         while (!keys.isEmpty()) {
             int randomIndex = random.nextInt(keys.size());
@@ -146,7 +129,7 @@ public class HanziArt {
      * @param strokeCountMap hashmap of unicode keys and stroke counts
      * @param strokeCount max stroke count of the image
      */
-    public static void regenerateStrokeKeySet(Map<String, String> strokeCountMap, int strokeCount){
+    private static void regenerateStrokeKeySet(Map<String, String> strokeCountMap, int strokeCount){
         // caching alg
         if (!strokeKeys.isEmpty()){
             if (!strokeCountMap.get(strokeKeys.iterator().next()).equals(String.valueOf(strokeCount))){
@@ -155,16 +138,6 @@ public class HanziArt {
                 return;
             }
         }
-        forceRegenerateStrokeKeySet(strokeCountMap, strokeCount); // this method shouldn't be called anywhere else really.
-    }
-
-    /**
-     * Called by regenerateStrokeKeySet() if the stroke count
-     * of the image does not match the stroke count of the cached keys.
-     * @param strokeCountMap
-     * @param strokeCount
-     */
-    public static void forceRegenerateStrokeKeySet(Map<String, String> strokeCountMap, int strokeCount){
         for (Map.Entry<String, String> entry : strokeCountMap.entrySet()) {
             if (entry.getValue().equals(Integer.toString(strokeCount))) {
                 strokeKeys.add(entry.getKey());
@@ -173,41 +146,19 @@ public class HanziArt {
     }
 
     /**
-     * Returns the brightness of a pixel in the range 0-255
-     * @param image the image to get the pixel brightness from
-     * @param x the x coordinate of the pixel
-     * @param y the y coordinate of the pixel
-     * @param redBias how much to weight the red component
-     * @param greenBias how much to weight the green component
-     * @param blueBias how much to weight the blue component
-     * @param inverted whether to invert the weight on the components or not
-     * @return the brightness of a pixel in the range 0-255
-     */
-    public static int getPixelBrightness(BufferedImage image, int x, int y, double redBias, double greenBias, double blueBias, boolean inverted) {
-
-        int pixel = image.getRGB(x, y);
-        int red = (pixel >> 16) & 0xFF;   // Extract the red component
-        int green = (pixel >> 8) & 0xFF;  // Extract the green component
-        int blue = pixel & 0xFF;          // Extract the blue component
-
-        // Calculate the weighted average based on biases
-        return (int) (red * redBias + green * greenBias + blue * blueBias) / 3;
-    }
-
-    /**
      * Outputs a hanzi character for each 2x2 pixel block in the image.
      * @throws NoSuchElementException if the stroke count map does not contain the stroke count of a character
      */
     private void complexOutput() throws NoSuchElementException, IOException {
         StringBuilder outputArt = this.getOutputArt();
-        BufferedImage resizedImage = Util.resizeImage(image, this.getOutputWidth());
-        BufferedImage resizedImage2x = Util.resizeImage(image, this.getOutputWidth() * 2);
+        BufferedImage resizedImage = Util.resizeImage(this.getImage(), outputWidth);
+        BufferedImage resizedImage2x = Util.resizeImage(this.getImage(), (outputWidth * 2));
         int maxStrokeCount = this.getMaxStrokeCount();
         Map<String, String> strokeCountMap = this.getStrokeCountMap();
         Map<String, String> fourCornerCodeMap = this.getFourCornerCodeMap();
 
         // iterate through image in 2x2 blocks
-        for (int y = 0; y < resizedImage2x.getHeight(); y += 2) {
+        for (int y = 0; y < resizedImage2x.getHeight() - 1; y += 2) {
             System.out.println("...building row " + ((y / 2) + 1) + " of " + resizedImage.getHeight());
             for (int x = 0; x < resizedImage2x.getWidth(); x += 2) {
 
@@ -217,7 +168,7 @@ public class HanziArt {
                 for (int blockY = y; blockY < y + 2; blockY++) {
                     for (int blockX = x; blockX < x + 2; blockX++) {
                         // add brightness for each pixel in block
-                        int pixelBrightnessBlock = getPixelBrightness(resizedImage2x, blockX, blockY, 1.1, 1.1, 1.1, false);
+                        int pixelBrightnessBlock = Util.getPixelBrightness(resizedImage2x, blockX, blockY, this.getRedBias(), this.getGreenBias(), this.getBlueBias(), false);
                         blockBrightness.add(pixelBrightnessBlock);
                     }
                 }
@@ -228,11 +179,9 @@ public class HanziArt {
                 int pixelBrightness = sum / blockBrightness.size();
                 int pixelStrokeCount = maxStrokeCount - (pixelBrightness * (maxStrokeCount - 1) / 255);
 
-                int brightestPixel = Util.findGreatestValue(blockBrightness, false);
                 int brightestPixelIndex = Util.findGreatestValue(blockBrightness, true);
-                int brightestPixelComplexity = Util.getComplexity((brightestPixel) * (8) / 255);
 
-                String hanzi = getRandomHanziFromCornerComplexity(brightestPixel, brightestPixelIndex, brightestPixelComplexity, strokeCountMap, fourCornerCodeMap, pixelStrokeCount, maxStrokeCount);
+                String hanzi = getRandomHanziFromCornerComplexity(brightestPixelIndex, strokeCountMap, fourCornerCodeMap, pixelStrokeCount);
                 outputArt.append(hanzi);
             }
 
@@ -250,17 +199,15 @@ public class HanziArt {
 
     /**
      * Returns a random hanzi character from the stroke count map.
-     * @param brightestPixel the brightest pixel in the 2x2 block
      * @param brightestPixelIndex the index of the brightest pixel in the 2x2 block
-     * @param brightestPixelComplexity the complexity of the brightest pixel in the 2x2 block
      * @param strokeCountMap the stroke count map
      * @param fourCornerCodeMap the four corner code map
      * @param strokeCount the stroke count of the character
-     * @param maxStrokeCount the max stroke count of the character
      * @return a random hanzi character from the stroke count map.
      * @throws NumberFormatException if the four corner code is not a number
      */
-    public static String getRandomHanziFromCornerComplexity(int brightestPixel, int brightestPixelIndex, int brightestPixelComplexity, Map<String, String> strokeCountMap, Map<String, String> fourCornerCodeMap, int strokeCount, int maxStrokeCount) throws NumberFormatException{
+    private String getRandomHanziFromCornerComplexity(int brightestPixelIndex, Map<String, String> strokeCountMap, Map<String, String> fourCornerCodeMap, int strokeCount) throws NumberFormatException{
+        // todo: this whole method makes no sense to me, please make it readable oh my GOSH!!!
         regenerateStrokeKeySet(strokeCountMap, strokeCount);
 
         while (!strokeKeys.isEmpty()) {
@@ -273,7 +220,6 @@ public class HanziArt {
                 continue;
             }
 
-            // todo: clean this up !! idk what im looking at !!
             // if the four corner code is 0000.0, then the character is not in the dictionary
             if (fourCornerCodeMap.get(unicodeKey).equals("0000.0") || strokeCount == 1) {
                 if (unicodeKey.length() <= 6 && !unicodeKey.contains("F")) {
@@ -401,5 +347,13 @@ public class HanziArt {
         this.redBias = redBias;
         this.greenBias = greenBias;
         this.blueBias = blueBias;
+    }
+
+    public void setOutputProgress(boolean outputProgress) {
+        this.outputProgress = outputProgress;
+    }
+
+    public boolean getOutputProgress() {
+        return outputProgress;
     }
 }

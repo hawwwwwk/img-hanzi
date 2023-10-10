@@ -9,16 +9,15 @@ import java.io.IOException;
 
 public class HanziArtTester {
     public static void main(String[] args) throws IOException {
-        System.out.println("...loading inputs");
-        String imgPath = "C:\\Users\\ethan\\Project Storage\\ImgToHanzi\\src\\test.jpg";
+        String imgPath = ".\\src\\hawk\\examples\\test.jpg";
         BufferedImage image = ImageIO.read(new File(imgPath));
-        String unihanDictionaryPath = "C:\\Users\\ethan\\Project Storage\\ImgToHanzi\\src\\Unihan_DictionaryLikeData.txt";
-        String unihanIRGSourcesPath = "C:\\Users\\ethan\\Project Storage\\ImgToHanzi\\src\\Unihan_IRGSources.txt";
-        int outputWidth = 75;
+        String unihanDictionaryPath = ".\\src\\Unihan_DictionaryLikeData.txt";
+        String unihanIRGSourcesPath = ".\\src\\Unihan_IRGSources.txt";
+        int outputWidth = 15;
 
         HanziArt ha = new HanziArt(image, outputWidth, unihanDictionaryPath, unihanIRGSourcesPath);
         ha.setBuildType(0);
-        ha.build();
+        ha.build(true);
         System.out.println(ha.getOutputArt());
     }
 }
