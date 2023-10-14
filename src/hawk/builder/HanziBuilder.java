@@ -52,6 +52,8 @@ public class HanziBuilder {
         StringBuilder outputArt = hanziArt.getOutputArt();
         BufferedImage resizedImage = Util.resizeImage(hanziArt.getImage(), hanziArt.getOutputWidth());
         BufferedImage resizedImage2x = Util.resizeImage(hanziArt.getImage(), (hanziArt.getOutputWidth() * 2));
+        Map<String, String> strokeCountMap = hanziArt.getStrokeCountMap();
+        Map<String, String> fourCornerCodeMap = hanziArt.getFourCornerCodeMap();
         int maxStrokeCount = hanziArt.getMaxStrokeCount();
 
         // iterate through image in 2x2 blocks
@@ -80,7 +82,7 @@ public class HanziBuilder {
 
                 int brightestPixelIndex = Util.findGreatestValue(blockBrightness, true);
 
-                String hanzi = getRandomHanziFromCornerComplexity(hanziArt, brightestPixelIndex, pixelStrokeCount);
+                String hanzi = getRandomHanziFromCornerComplexity(hanziArt, strokeCountMap, fourCornerCodeMap, brightestPixelIndex, pixelStrokeCount);
                 outputArt.append(hanzi);
             }
 
@@ -126,10 +128,8 @@ public class HanziBuilder {
      * @return a random hanzi character from the stroke count map.
      * @throws NumberFormatException if the four corner code is not a number
      */
-    private String getRandomHanziFromCornerComplexity(HanziArt hanziArt, int brightestPixelIndex, int strokeCount) throws NumberFormatException{
+    private String getRandomHanziFromCornerComplexity(HanziArt hanziArt, Map<String, String> strokeCountMap, Map<String, String> fourCornerCodeMap, int brightestPixelIndex, int strokeCount) throws NumberFormatException{
         // todo: this whole method makes no sense to me, please make it readable oh my GOSH!!!
-        Map<String, String> strokeCountMap = hanziArt.getStrokeCountMap();
-        Map<String, String> fourCornerCodeMap = hanziArt.getFourCornerCodeMap();
         hanziArt.regenerateStrokeKeySet(strokeCountMap, strokeCount);
 
         while (!hanziArt.getStrokeKeys().isEmpty()) {
