@@ -24,10 +24,8 @@ public class HanziArt {
     private boolean outputProgress = false;
     private boolean inverted = false;
 
-    // todo: add documentation, add java docs!
-    public HanziArt(){
-
-    }
+    // todo: add documentation
+    public HanziArt(){}
 
     public HanziArt(BufferedImage image, int outputWidth, String unihanDictionaryPath, String unihanIRGSourcesPath) throws IOException {
         this.image = image;

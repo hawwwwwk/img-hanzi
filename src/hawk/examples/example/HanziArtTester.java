@@ -1,4 +1,4 @@
-package hawk.examples;
+package hawk.examples.example;
 
 import hawk.HanziArt;
 

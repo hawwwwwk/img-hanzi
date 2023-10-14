@@ -53,8 +53,6 @@ public class HanziBuilder {
         BufferedImage resizedImage = Util.resizeImage(hanziArt.getImage(), hanziArt.getOutputWidth());
         BufferedImage resizedImage2x = Util.resizeImage(hanziArt.getImage(), (hanziArt.getOutputWidth() * 2));
         int maxStrokeCount = hanziArt.getMaxStrokeCount();
-        Map<String, String> strokeCountMap = hanziArt.getStrokeCountMap();
-        Map<String, String> fourCornerCodeMap = hanziArt.getFourCornerCodeMap();
 
         // iterate through image in 2x2 blocks
         for (int y = 0; y < resizedImage2x.getHeight() - 1; y += 2) {
@@ -82,7 +80,7 @@ public class HanziBuilder {
 
                 int brightestPixelIndex = Util.findGreatestValue(blockBrightness, true);
 
-                String hanzi = getRandomHanziFromCornerComplexity(brightestPixelIndex, strokeCountMap, fourCornerCodeMap, pixelStrokeCount, hanziArt);
+                String hanzi = getRandomHanziFromCornerComplexity(hanziArt, brightestPixelIndex, pixelStrokeCount);
                 outputArt.append(hanzi);
             }
 
@@ -106,7 +104,7 @@ public class HanziBuilder {
         HashSet<String> keys = hanziArt.getStrokeKeys();
         Map<String, String> strokeCountMap = hanziArt.getStrokeCountMap();
 
-        // caching algorithm, matches stroke count
+        // caching alg, matches stroke count
         hanziArt.regenerateStrokeKeySet(strokeCountMap, strokeCount);
 
         while (!keys.isEmpty()) {
@@ -118,21 +116,20 @@ public class HanziBuilder {
                 keys.remove(unicodeKey);
             }
         }
-        return Util.unicodeKeyToString("U+3000"); // if the function reaches this something weird went wrong
+        return Util.unicodeKeyToString("U+3000"); // no match found, default to white space
     }
 
     /**
      * Returns a random hanzi character from the stroke count map.
      * @param brightestPixelIndex the index of the brightest pixel in the 2x2 block
-     * @param strokeCountMap the stroke count map
-     * @param fourCornerCodeMap the four corner code map
      * @param strokeCount the stroke count of the character
      * @return a random hanzi character from the stroke count map.
      * @throws NumberFormatException if the four corner code is not a number
      */
-    // todo: reduce number of input variables, just grab from the object
-    private String getRandomHanziFromCornerComplexity(int brightestPixelIndex, Map<String, String> strokeCountMap, Map<String, String> fourCornerCodeMap, int strokeCount, HanziArt hanziArt) throws NumberFormatException{
+    private String getRandomHanziFromCornerComplexity(HanziArt hanziArt, int brightestPixelIndex, int strokeCount) throws NumberFormatException{
         // todo: this whole method makes no sense to me, please make it readable oh my GOSH!!!
+        Map<String, String> strokeCountMap = hanziArt.getStrokeCountMap();
+        Map<String, String> fourCornerCodeMap = hanziArt.getFourCornerCodeMap();
         hanziArt.regenerateStrokeKeySet(strokeCountMap, strokeCount);
 
         while (!hanziArt.getStrokeKeys().isEmpty()) {
@@ -173,6 +170,6 @@ public class HanziBuilder {
                 }
             }
         }
-        return Util.unicodeKeyToString("U+3000"); // if the function reaches this something weird went wrong
+        return Util.unicodeKeyToString("U+3000"); // no match found, default to white space
     }
 }
