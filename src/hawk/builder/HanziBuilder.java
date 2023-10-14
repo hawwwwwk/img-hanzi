@@ -4,7 +4,6 @@ import hawk.HanziArt;
 import hawk.util.Util;
 
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
@@ -20,11 +19,10 @@ public class HanziBuilder {
     /**
      * Build the output art using the fast method.
      * @param hanziArt the hanzi art object
-     * @throws IOException if the image is not found
      */
-    public void buildFastOutput(HanziArt hanziArt) throws IOException {
-        BufferedImage resizedImage = Util.resizeImage(hanziArt.getImage(), hanziArt.getOutputWidth());
+    public void buildFastOutput(HanziArt hanziArt) {
         StringBuilder outputArt = hanziArt.getOutputArt();
+        BufferedImage resizedImage = Util.resizeImage(hanziArt.getImage(), hanziArt.getOutputWidth());
         int maxStrokeCount = hanziArt.getMaxStrokeCount();
 
         for (int y = 0; y < resizedImage.getHeight(); y++) {
@@ -49,9 +47,8 @@ public class HanziBuilder {
      * Build the output art using the complex method.
      * @param hanziArt the hanzi art object
      * @throws NoSuchElementException if the stroke count map or four corner code map is not found
-     * @throws IOException if the image is not found
      */
-    public void buildComplexOutput(HanziArt hanziArt) throws NoSuchElementException, IOException {
+    public void buildComplexOutput(HanziArt hanziArt) throws NoSuchElementException{
         StringBuilder outputArt = hanziArt.getOutputArt();
         BufferedImage resizedImage = Util.resizeImage(hanziArt.getImage(), hanziArt.getOutputWidth());
         BufferedImage resizedImage2x = Util.resizeImage(hanziArt.getImage(), (hanziArt.getOutputWidth() * 2));
@@ -95,6 +92,9 @@ public class HanziBuilder {
 
         hanziArt.setOutputArt(outputArt);
     }
+
+    // todo: make specialized option for monochrome images, lets make bad apple lmfao
+    // todo: add option to find edges of image and increase the density along them, maybe using canny detection
 
     /**
      * Returns a random hanzi character from the stroke count map.

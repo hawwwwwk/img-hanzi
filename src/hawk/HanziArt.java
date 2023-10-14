@@ -24,10 +24,11 @@ public class HanziArt {
     private boolean outputProgress = false;
     private boolean inverted = false;
 
-    // todo: add documentation
-    public HanziArt(BufferedImage image){
-        this.image = image;
+    // todo: add documentation, add java docs!
+    public HanziArt(){
+
     }
+
     public HanziArt(BufferedImage image, int outputWidth, String unihanDictionaryPath, String unihanIRGSourcesPath) throws IOException {
         this.image = image;
         this.outputWidth = outputWidth;
@@ -37,9 +38,9 @@ public class HanziArt {
 
     /**
      * Builds the output art.
-     * @throws IOException if the image is not found
      */
-    public void build() throws IOException {
+    // todo: make the building of the art async.
+    public void build() {
         HanziBuilder builder = new HanziBuilder();
         switch (this.getBuildType()) {
             case "fast":
@@ -56,9 +57,8 @@ public class HanziArt {
     /**
      * Builds the output art.
      * @param outputProgress whether to output build progress to the console
-     * @throws IOException if the image is not found
      */
-    public void build(boolean outputProgress) throws IOException {
+    public void build(boolean outputProgress) {
         this.outputProgress = outputProgress;
         this.build();
     }
