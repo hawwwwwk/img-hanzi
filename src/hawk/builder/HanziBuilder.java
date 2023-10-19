@@ -49,6 +49,7 @@ public class HanziBuilder {
      * @throws NoSuchElementException if the stroke count map or four corner code map is not found
      */
     public void buildComplexOutput(HanziArt hanziArt) throws NoSuchElementException{
+        // local declarations
         StringBuilder outputArt = hanziArt.getOutputArt();
         BufferedImage resizedImage = Util.resizeImage(hanziArt.getImage(), hanziArt.getOutputWidth());
         BufferedImage resizedImage2x = Util.resizeImage(hanziArt.getImage(), (hanziArt.getOutputWidth() * 2));
@@ -74,12 +75,14 @@ public class HanziBuilder {
                     }
                 }
                 int sum = 0;
+
+                // get average brightness of block
                 for (int brightness : blockBrightness) {
                     sum += brightness;
                 }
                 int pixelBrightness = sum / blockBrightness.size();
-                int pixelStrokeCount = maxStrokeCount - (pixelBrightness * (maxStrokeCount - 1) / 255);
 
+                int pixelStrokeCount = maxStrokeCount - (pixelBrightness * (maxStrokeCount - 1) / 255);
                 int brightestPixelIndex = Util.findGreatestValue(blockBrightness, true);
 
                 String hanzi = getRandomHanziFromCornerComplexity(hanziArt, strokeCountMap, fourCornerCodeMap, brightestPixelIndex, pixelStrokeCount);
