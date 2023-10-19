@@ -1,7 +1,7 @@
-package hawk;
+package xyz.ethxn;
 
-import hawk.builder.HanziBuilder;
-import hawk.util.Util;
+import xyz.ethxn.builder.HanziBuilder;
+import xyz.ethxn.util.Util;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -75,6 +75,7 @@ public class HanziArt {
                 return;
             }
         }
+
         for (Map.Entry<String, String> entry : strokeCountMap.entrySet()) {
             if (entry.getValue().equals(Integer.toString(strokeCount))) {
                 this.strokeKeys.add(entry.getKey());

@@ -1,6 +1,6 @@
-package hawk.examples.example;
+package xyz.ethxn.examples.example;
 
-import hawk.HanziArt;
+import xyz.ethxn.HanziArt;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -9,7 +9,7 @@ import java.io.IOException;
 
 public class HanziArtTester {
     public static void main(String[] args) throws IOException {
-        String imgPath = ".\\src\\hawk\\examples\\example\\test.jpg";
+        String imgPath = ".\\src\\xyz.hawk\\examples\\example\\test.jpg";
         BufferedImage image = ImageIO.read(new File(imgPath));
         String unihanDictionaryPath = ".\\src\\Unihan_DictionaryLikeData.txt";
         String unihanIRGSourcesPath = ".\\src\\Unihan_IRGSources.txt";

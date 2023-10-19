@@ -1,4 +1,4 @@
-package hawk.util;
+package xyz.ethxn.util;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;

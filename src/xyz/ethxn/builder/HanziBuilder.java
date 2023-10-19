@@ -1,7 +1,7 @@
-package hawk.builder;
+package xyz.ethxn.builder;
 
-import hawk.HanziArt;
-import hawk.util.Util;
+import xyz.ethxn.HanziArt;
+import xyz.ethxn.util.Util;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -24,6 +24,8 @@ public class HanziBuilder {
         StringBuilder outputArt = hanziArt.getOutputArt();
         BufferedImage resizedImage = Util.resizeImage(hanziArt.getImage(), hanziArt.getOutputWidth());
         int maxStrokeCount = hanziArt.getMaxStrokeCount();
+
+        // todo: instead of generating a random character from the whole HashSet, break them into smaller HashSets
 
         for (int y = 0; y < resizedImage.getHeight(); y++) {
             if (hanziArt.isOutputProgress()){
@@ -109,7 +111,6 @@ public class HanziBuilder {
         HashSet<String> keys = hanziArt.getStrokeKeys();
         Map<String, String> strokeCountMap = hanziArt.getStrokeCountMap();
 
-        // caching alg, matches stroke count
         hanziArt.regenerateStrokeKeySet(strokeCountMap, strokeCount);
 
         while (!keys.isEmpty()) {
