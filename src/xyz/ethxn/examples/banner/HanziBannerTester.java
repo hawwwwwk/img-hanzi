@@ -10,14 +10,14 @@ import java.io.IOException;
 public class HanziBannerTester {
     public static void main(String[] args) throws IOException {
 
-        String imgPath = ".\\src\\xyz.hawk\\examples\\banner\\banner.png";
+        String imgPath = ".\\src\\xyz\\ethxn\\examples\\banner\\banner.png";
         BufferedImage image = ImageIO.read(new File(imgPath));
         String unihanDictionaryPath = ".\\src\\Unihan_DictionaryLikeData.txt";
         String unihanIRGSourcesPath = ".\\src\\Unihan_IRGSources.txt";
-        int outputWidth = 100;
+        int outputWidth = 50;
 
         HanziArt hanziArt = new HanziArt(image, outputWidth, unihanDictionaryPath, unihanIRGSourcesPath);
-        hanziArt.setBuildType(0); // 0 = fast, 1 = complex
+        hanziArt.setBuildType(1); // 0 = fast, 1 = complex
         hanziArt.setBias(2, 2, 2);
         hanziArt.setMaxStrokeCount(25);
 

@@ -4,10 +4,7 @@ import xyz.ethxn.HanziArt;
 import xyz.ethxn.util.Util;
 
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 /**
  * Builds the output art. Mostly used by internal methods,
@@ -24,8 +21,6 @@ public class HanziBuilder {
         StringBuilder outputArt = hanziArt.getOutputArt();
         BufferedImage resizedImage = Util.resizeImage(hanziArt.getImage(), hanziArt.getOutputWidth());
         int maxStrokeCount = hanziArt.getMaxStrokeCount();
-
-        // todo: instead of generating a random character from the whole HashSet, break them into smaller HashSets
 
         for (int y = 0; y < resizedImage.getHeight(); y++) {
             if (hanziArt.isOutputProgress()){
@@ -98,9 +93,6 @@ public class HanziBuilder {
         hanziArt.setOutputArt(outputArt);
     }
 
-    // todo: make specialized option for monochrome images, lets make bad apple lmfao
-    // todo: add option to find edges of image and increase the density along them, maybe using canny detection
-
     /**
      * Returns a random hanzi character from the stroke count map.
      * @param strokeCount the stroke count of the character (within the pixel)
@@ -108,7 +100,7 @@ public class HanziBuilder {
      * @return a random hanzi character from the stroke count map.
      */
     private String getRandomHanziFromStrokeCount(int strokeCount, HanziArt hanziArt){
-        HashSet<String> keys = hanziArt.getStrokeKeys();
+        Set<String> keys = hanziArt.getStrokeKeys();
         Map<String, String> strokeCountMap = hanziArt.getStrokeCountMap();
 
         hanziArt.regenerateStrokeKeySet(strokeCountMap, strokeCount);
@@ -133,7 +125,6 @@ public class HanziBuilder {
      * @throws NumberFormatException if the four corner code is not a number
      */
     private String getRandomHanziFromCornerComplexity(HanziArt hanziArt, Map<String, String> strokeCountMap, Map<String, String> fourCornerCodeMap, int brightestPixelIndex, int strokeCount) throws NumberFormatException{
-        // todo: this whole method makes no sense to me, please make it readable oh my GOSH!!!
         hanziArt.regenerateStrokeKeySet(strokeCountMap, strokeCount);
 
         while (!hanziArt.getStrokeKeys().isEmpty()) {
@@ -147,12 +138,10 @@ public class HanziBuilder {
             }
 
             // if the four corner code is 0000.0, then the character is not in the dictionary
-            if (fourCornerCodeMap.get(unicodeKey).equals("0000.0") || strokeCount == 1) {
-                if (unicodeKey.length() <= 6 && !unicodeKey.contains("F")) {
-                    return Util.unicodeKeyToString(unicodeKey);
-                } else {
-                    hanziArt.getStrokeKeys().remove(unicodeKey);
-                }
+            if (processUnicodeKey(unicodeKey, strokeCount, fourCornerCodeMap, hanziArt)){
+                return Util.unicodeKeyToString(unicodeKey);
+            } else {
+                hanziArt.getStrokeKeys().remove(unicodeKey);
             }
 
             String cornerCodesString = fourCornerCodeMap.get(unicodeKey);
@@ -175,5 +164,17 @@ public class HanziBuilder {
             }
         }
         return Util.unicodeKeyToString("U+3000"); // no match found, default to white space
+    }
+
+    public boolean processUnicodeKey(String unicodeKey, int strokeCount, Map<String, String> fourCornerCodeMap, HanziArt hanziArt) {
+        String fourCornerCode = fourCornerCodeMap.get(unicodeKey);
+
+        if (("0000.0".equals(fourCornerCode) || strokeCount == 1)
+                && unicodeKey.length() <= 6 && !unicodeKey.contains("F")) {
+            return true;
+        } else {
+            hanziArt.getStrokeKeys().remove(unicodeKey);
+            return false;
+        }
     }
 }

@@ -10,8 +10,9 @@ import java.util.*;
 public class HanziArt {
 
     public static final Random random = new Random();
-    public HashSet<String> strokeKeys = new HashSet<>();
-    public StringBuilder outputArt = new StringBuilder();
+    private List<Set<String>> strokeKeySets = new ArrayList<>();
+    private Set<String> strokeKeys = new HashSet<>();
+    private StringBuilder outputArt = new StringBuilder();
     private BufferedImage image;        // the image to process
     private int outputWidth = 30;       // the width of the output image
     private int maxStrokeCount = 25;    // 1-25, more usually means more detail but longer processing time
@@ -24,7 +25,10 @@ public class HanziArt {
     private boolean outputProgress = false;
     private boolean inverted = false;
 
-    // todo: add documentation
+
+    /**
+     * Constructs a new HanziArt object.
+     */
     public HanziArt(){}
 
     public HanziArt(BufferedImage image, int outputWidth, String unihanDictionaryPath, String unihanIRGSourcesPath) throws IOException {
@@ -37,7 +41,6 @@ public class HanziArt {
     /**
      * Builds the output art.
      */
-    // todo: make the building of the art async.
     public void build() {
         HanziBuilder builder = new HanziBuilder();
         switch (this.getBuildType()) {
@@ -66,21 +69,36 @@ public class HanziArt {
      * @param strokeCountMap hashmap of unicode keys and stroke counts
      * @param strokeCount max stroke count of the image
      */
+    // todo: instead of regenerating the stroke key set every time, we should cache it in an ArrayList!
     public void regenerateStrokeKeySet(Map<String, String> strokeCountMap, int strokeCount){
-        // caching alg
-        if (!this.strokeKeys.isEmpty()){
-            if (!strokeCountMap.get(this.strokeKeys.iterator().next()).equals(String.valueOf(strokeCount))){
-                this.strokeKeys.clear();
-            } else {
-                return;
-            }
+        if (strokeCount <= 1 || strokeCount >= 25){
+            strokeKeys.clear();
+            strokeKeys.add("U+3000");
+            return;
         }
 
-        for (Map.Entry<String, String> entry : strokeCountMap.entrySet()) {
-            if (entry.getValue().equals(Integer.toString(strokeCount))) {
-                this.strokeKeys.add(entry.getKey());
+        // generate stroke key set from array list if it already exists for the stroke count, if not generate a new one.
+        for (Set<String> strokeKeySet : strokeKeySets) {
+            try {
+                if (strokeKeySet.iterator().next().equals(Integer.toString(strokeCount))) {
+                    System.out.println("Found stroke key set for stroke count: " + strokeCount + "...");
+                    strokeKeys = strokeKeySet;
+                    return;
+                }
+            } catch (Exception e) {
+                System.out.println("Empty stroke key set found for stroke count: " + strokeCount + "...");
             }
         }
+        System.out.println("None found, generating new stroke key set for stroke count: " + strokeCount + "...");
+
+        strokeKeys.clear();
+        for (Map.Entry<String, String> entry : strokeCountMap.entrySet()) {
+            if (entry.getValue().equals(Integer.toString(strokeCount))) {
+                strokeKeys.add(entry.getKey());
+            }
+        }
+        strokeKeySets.add(strokeKeys);
+        // System.out.println(strokeKeySets);
     }
 
 
@@ -135,7 +153,7 @@ public class HanziArt {
         this.strokeKeys = strokeKeys;
     }
 
-    public HashSet<String> getStrokeKeys() {
+    public Set<String> getStrokeKeys() {
         return strokeKeys;
     }
 
@@ -214,5 +232,13 @@ public class HanziArt {
 
     public void setInverted(boolean inverted) {
         this.inverted = inverted;
+    }
+
+    public List<Set<String>> getStrokeKeySets(int strokeCount) {
+        return strokeKeySets;
+    }
+
+    public void setStrokeKeySets(List<Set<String>> strokeKeySets) {
+        this.strokeKeySets = strokeKeySets;
     }
 }
