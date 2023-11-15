@@ -42,6 +42,17 @@ public class HanziArt {
      * Builds the output art.
      */
     public void build() {
+        // sets up key sets
+        for (int i = 1; i <= this.getMaxStrokeCount(); i++) {
+            Set<String> keysForStrokeCount = new HashSet<>();
+            for (Map.Entry<String, String> entry : strokeCountMap.entrySet()) {
+                if (entry.getValue().equals(Integer.toString(i))) {
+                    keysForStrokeCount.add(entry.getKey());
+                }
+            }
+            this.strokeKeySets.add(keysForStrokeCount);
+        }
+
         HanziBuilder builder = new HanziBuilder();
         switch (this.getBuildType()) {
             case "fast":
@@ -51,7 +62,7 @@ public class HanziArt {
                 builder.buildComplexOutput(this);
                 break;
             default:
-                throw new RuntimeException("Invalid build type");
+                throw new IndexOutOfBoundsException("Invalid build type");
         }
     }
 
@@ -71,36 +82,16 @@ public class HanziArt {
      */
     // todo: instead of regenerating the stroke key set every time, we should cache it in an ArrayList!
     public void regenerateStrokeKeySet(Map<String, String> strokeCountMap, int strokeCount){
-        if (strokeCount <= 1 || strokeCount >= 25){
-            strokeKeys.clear();
-            strokeKeys.add("U+3000");
+        if (strokeCount <= 1){
+            this.strokeKeys.clear();
+            this.strokeKeys.add("U+3000");
             return;
+        } else if (strokeCount >= this.getMaxStrokeCount()){
+            strokeCount = this.maxStrokeCount;
         }
 
-        // generate stroke key set from array list if it already exists for the stroke count, if not generate a new one.
-        for (Set<String> strokeKeySet : strokeKeySets) {
-            try {
-                if (strokeKeySet.iterator().next().equals(Integer.toString(strokeCount))) {
-                    System.out.println("Found stroke key set for stroke count: " + strokeCount + "...");
-                    strokeKeys = strokeKeySet;
-                    return;
-                }
-            } catch (Exception e) {
-                System.out.println("Empty stroke key set found for stroke count: " + strokeCount + "...");
-            }
-        }
-        System.out.println("None found, generating new stroke key set for stroke count: " + strokeCount + "...");
-
-        strokeKeys.clear();
-        for (Map.Entry<String, String> entry : strokeCountMap.entrySet()) {
-            if (entry.getValue().equals(Integer.toString(strokeCount))) {
-                strokeKeys.add(entry.getKey());
-            }
-        }
-        strokeKeySets.add(strokeKeys);
-        // System.out.println(strokeKeySets);
+        strokeKeys = strokeKeySets.get(strokeCount - 1);
     }
-
 
     public void setOutputArt(StringBuilder outputArt){
         this.outputArt = outputArt;
@@ -149,7 +140,7 @@ public class HanziArt {
         return fourCornerCodeMap;
     }
 
-    public void setStrokeKeys(HashSet<String> strokeKeys) {
+    public void setStrokeKeys(Set<String> strokeKeys) {
         this.strokeKeys = strokeKeys;
     }
 
@@ -171,7 +162,7 @@ public class HanziArt {
                 this.buildType = "complex";
                 break;
             default:
-                throw new RuntimeException("'"+buildType+"'"+" is an invalid build type.");
+                throw new IndexOutOfBoundsException("'"+buildType+"'"+" is an invalid build type.");
         }
     }
 
@@ -234,7 +225,7 @@ public class HanziArt {
         this.inverted = inverted;
     }
 
-    public List<Set<String>> getStrokeKeySets(int strokeCount) {
+    public List<Set<String>> getStrokeKeySets() {
         return strokeKeySets;
     }
 

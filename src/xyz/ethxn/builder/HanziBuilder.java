@@ -31,7 +31,9 @@ public class HanziBuilder {
                 int pixelBrightness = Util.getPixelBrightness(
                         resizedImage, x, y, hanziArt.getRedBias(), hanziArt.getGreenBias(), hanziArt.getBlueBias(), hanziArt.isInverted()
                 );
-                int pixelStrokeCount = maxStrokeCount - (pixelBrightness) * (maxStrokeCount - 1) / 255;
+                int pixelStrokeCount = 1 + (pixelBrightness * (maxStrokeCount - 1) / 255);
+                pixelStrokeCount = Math.min(pixelStrokeCount, maxStrokeCount);
+                System.out.println(pixelStrokeCount);
                 String pixelHanzi = getRandomHanziFromStrokeCount(pixelStrokeCount, hanziArt);
                 outputArt.append(pixelHanzi);
             }
@@ -79,7 +81,9 @@ public class HanziBuilder {
                 }
                 int pixelBrightness = sum / blockBrightness.size();
 
-                int pixelStrokeCount = maxStrokeCount - (pixelBrightness * (maxStrokeCount - 1) / 255);
+                int pixelStrokeCount = 1 + (pixelBrightness * (maxStrokeCount - 1) / 255);
+                pixelStrokeCount = Math.min(pixelStrokeCount, maxStrokeCount);
+                System.out.println(pixelStrokeCount);
                 int brightestPixelIndex = Util.findGreatestValue(blockBrightness, true);
 
                 String hanzi = getRandomHanziFromCornerComplexity(hanziArt, strokeCountMap, fourCornerCodeMap, brightestPixelIndex, pixelStrokeCount);
@@ -89,7 +93,6 @@ public class HanziBuilder {
             // next line
             outputArt.append('\n');
         }
-
         hanziArt.setOutputArt(outputArt);
     }
 

@@ -14,7 +14,7 @@ public class HanziBannerTester {
         BufferedImage image = ImageIO.read(new File(imgPath));
         String unihanDictionaryPath = ".\\src\\Unihan_DictionaryLikeData.txt";
         String unihanIRGSourcesPath = ".\\src\\Unihan_IRGSources.txt";
-        int outputWidth = 50;
+        int outputWidth = 100;
 
         HanziArt hanziArt = new HanziArt(image, outputWidth, unihanDictionaryPath, unihanIRGSourcesPath);
         hanziArt.setBuildType(1); // 0 = fast, 1 = complex
