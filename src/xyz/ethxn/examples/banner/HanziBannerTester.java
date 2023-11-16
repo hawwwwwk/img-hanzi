@@ -18,7 +18,6 @@ public class HanziBannerTester {
 
         HanziArt hanziArt = new HanziArt(image, outputWidth, unihanDictionaryPath, unihanIRGSourcesPath);
         hanziArt.setBuildType(1); // 0 = fast, 1 = complex
-        hanziArt.setBias(2, 2, 2);
         hanziArt.setMaxStrokeCount(25);
 
         hanziArt.build(true);

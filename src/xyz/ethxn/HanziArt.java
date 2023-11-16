@@ -13,17 +13,13 @@ public class HanziArt {
     private List<Set<String>> strokeKeySets = new ArrayList<>();
     private Set<String> strokeKeys = new HashSet<>();
     private StringBuilder outputArt = new StringBuilder();
+    private String buildType = "fast";  // fast or complex
     private BufferedImage image;        // the image to process
     private int outputWidth = 30;       // the width of the output image
-    private int maxStrokeCount = 25;    // 1-25, more usually means more detail but longer processing time
-    private Map<String, String> strokeCountMap; // hashmap of unicode keys and stroke counts
-    private Map<String, String> fourCornerCodeMap; // hashmap of unicode keys and four corner codes
-    private String buildType = "fast"; // fast or complex
-    private double redBias = 1.0;
-    private double greenBias = 1.0;
-    private double blueBias = 1.0;
+    private int maxStrokeCount = 25;    // 1-25, higher usually means more detail but longer processing time
+    private Map<String, String> strokeCountMap;     // hashmap of unicode keys and stroke counts
+    private Map<String, String> fourCornerCodeMap;  // hashmap of unicode keys and four corner codes
     private boolean outputProgress = false;
-    private boolean inverted = false;
 
 
     /**
@@ -75,13 +71,11 @@ public class HanziArt {
         this.build();
     }
 
-    /**
+    /** todo: update javadoc
      * Regenerates the stroke key set if the stroke count of the image does not match the stroke count of the cached keys.
-     * @param strokeCountMap hashmap of unicode keys and stroke counts
      * @param strokeCount max stroke count of the image
      */
-    // todo: instead of regenerating the stroke key set every time, we should cache it in an ArrayList!
-    public void regenerateStrokeKeySet(Map<String, String> strokeCountMap, int strokeCount){
+    public void regenerateStrokeKeySet(int strokeCount){
         if (strokeCount <= 1){
             this.strokeKeys.clear();
             this.strokeKeys.add("U+3000");
@@ -179,50 +173,12 @@ public class HanziArt {
         return buildType;
     }
 
-    public void setRedBias(double redBias) {
-        this.redBias = redBias;
-    }
-
-    public double getRedBias() {
-        return redBias;
-    }
-
-    public void setGreenBias(double greenBias) {
-        this.greenBias = greenBias;
-    }
-
-    public double getGreenBias() {
-        return greenBias;
-    }
-
-    public void setBlueBias(double blueBias) {
-        this.blueBias = blueBias;
-    }
-
-    public double getBlueBias() {
-        return blueBias;
-    }
-
-    public void setBias(double redBias, double greenBias, double blueBias) {
-        this.redBias = redBias;
-        this.greenBias = greenBias;
-        this.blueBias = blueBias;
-    }
-
     public boolean isOutputProgress() {
         return outputProgress;
     }
 
     public void setOutputProgress(boolean outputProgress) {
         this.outputProgress = outputProgress;
-    }
-
-    public boolean isInverted() {
-        return inverted;
-    }
-
-    public void setInverted(boolean inverted) {
-        this.inverted = inverted;
     }
 
     public List<Set<String>> getStrokeKeySets() {

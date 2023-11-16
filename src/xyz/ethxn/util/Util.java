@@ -1,7 +1,9 @@
 package xyz.ethxn.util;
 
 import java.awt.*;
+import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorConvertOp;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -144,7 +146,12 @@ public class Util {
         g.drawImage(image, 0, 0, outputWidth, outputHeight, null);
         g.dispose();
 
-        return resizedImage;
+        // Convert the resized image to grayscale
+        ColorConvertOp op = new ColorConvertOp(ColorSpace.getInstance(ColorSpace.CS_GRAY), null);
+        BufferedImage monochromeImage = new BufferedImage(outputWidth, outputHeight, BufferedImage.TYPE_BYTE_GRAY);
+        op.filter(resizedImage, monochromeImage);
+
+        return monochromeImage;
     }
 
     /**
@@ -152,21 +159,12 @@ public class Util {
      * @param image the image to get the pixel brightness from
      * @param x the x coordinate of the pixel
      * @param y the y coordinate of the pixel
-     * @param redBias how much to weight the red component
-     * @param greenBias how much to weight the green component
-     * @param blueBias how much to weight the blue component
-     * @param inverted whether to invert the weight on the components or not
      * @return the brightness of a pixel in the range 0-255
      */
-    // todo: add use for inverted
-    public static int getPixelBrightness(BufferedImage image, int x, int y, double redBias, double greenBias, double blueBias, boolean inverted) {
-
+    public static int getPixelBrightness(BufferedImage image, int x, int y) {
+        // Get the RGB value of the pixel at (x, y)
         int pixel = image.getRGB(x, y);
-        int red = (pixel >> 16) & 0xFF;   // Extract the red component
-        int green = (pixel >> 8) & 0xFF;  // Extract the green component
-        int blue = pixel & 0xFF;          // Extract the blue component
 
-        // Calculate the weighted average based on biases
-        return (int) (red * redBias + green * greenBias + blue * blueBias) / 3;
+        return (pixel >> 16) & 0xFF;
     }
 }

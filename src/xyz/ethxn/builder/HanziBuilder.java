@@ -28,9 +28,7 @@ public class HanziBuilder {
             }
 
             for (int x = 0; x < resizedImage.getWidth(); x++) {
-                int pixelBrightness = Util.getPixelBrightness(
-                        resizedImage, x, y, hanziArt.getRedBias(), hanziArt.getGreenBias(), hanziArt.getBlueBias(), hanziArt.isInverted()
-                );
+                int pixelBrightness = Util.getPixelBrightness(resizedImage, x, y);
                 int pixelStrokeCount = 1 + (pixelBrightness * (maxStrokeCount - 1) / 255);
                 pixelStrokeCount = Math.min(pixelStrokeCount, maxStrokeCount);
                 System.out.println(pixelStrokeCount);
@@ -52,7 +50,6 @@ public class HanziBuilder {
         StringBuilder outputArt = hanziArt.getOutputArt();
         BufferedImage resizedImage = Util.resizeImage(hanziArt.getImage(), hanziArt.getOutputWidth());
         BufferedImage resizedImage2x = Util.resizeImage(hanziArt.getImage(), (hanziArt.getOutputWidth() * 2));
-        Map<String, String> strokeCountMap = hanziArt.getStrokeCountMap();
         Map<String, String> fourCornerCodeMap = hanziArt.getFourCornerCodeMap();
         int maxStrokeCount = hanziArt.getMaxStrokeCount();
 
@@ -67,9 +64,7 @@ public class HanziBuilder {
                 for (int blockY = y; blockY < y + 2; blockY++) {
                     for (int blockX = x; blockX < x + 2; blockX++) {
                         // add brightness for each pixel in block
-                        int pixelBrightnessBlock = Util.getPixelBrightness(
-                                resizedImage2x, blockX, blockY, hanziArt.getRedBias(), hanziArt.getGreenBias(), hanziArt.getBlueBias(), false
-                        );
+                        int pixelBrightnessBlock = Util.getPixelBrightness(resizedImage2x, blockX, blockY);
                         blockBrightness.add(pixelBrightnessBlock);
                     }
                 }
@@ -86,7 +81,7 @@ public class HanziBuilder {
                 System.out.println(pixelStrokeCount);
                 int brightestPixelIndex = Util.findGreatestValue(blockBrightness, true);
 
-                String hanzi = getRandomHanziFromCornerComplexity(hanziArt, strokeCountMap, fourCornerCodeMap, brightestPixelIndex, pixelStrokeCount);
+                String hanzi = getRandomHanziFromCornerComplexity(hanziArt, fourCornerCodeMap, brightestPixelIndex, pixelStrokeCount);
                 outputArt.append(hanzi);
             }
 
@@ -104,9 +99,8 @@ public class HanziBuilder {
      */
     private String getRandomHanziFromStrokeCount(int strokeCount, HanziArt hanziArt){
         Set<String> keys = hanziArt.getStrokeKeys();
-        Map<String, String> strokeCountMap = hanziArt.getStrokeCountMap();
 
-        hanziArt.regenerateStrokeKeySet(strokeCountMap, strokeCount);
+        hanziArt.regenerateStrokeKeySet(strokeCount);
 
         while (!keys.isEmpty()) {
             int randomIndex = HanziArt.random.nextInt(keys.size());
@@ -127,8 +121,8 @@ public class HanziBuilder {
      * @return a random hanzi character from the stroke count map.
      * @throws NumberFormatException if the four corner code is not a number
      */
-    private String getRandomHanziFromCornerComplexity(HanziArt hanziArt, Map<String, String> strokeCountMap, Map<String, String> fourCornerCodeMap, int brightestPixelIndex, int strokeCount) throws NumberFormatException{
-        hanziArt.regenerateStrokeKeySet(strokeCountMap, strokeCount);
+    private String getRandomHanziFromCornerComplexity(HanziArt hanziArt, Map<String, String> fourCornerCodeMap, int brightestPixelIndex, int strokeCount) throws NumberFormatException{
+        hanziArt.regenerateStrokeKeySet(strokeCount);
 
         while (!hanziArt.getStrokeKeys().isEmpty()) {
             int randomIndex = HanziArt.random.nextInt(hanziArt.getStrokeKeys().size());
@@ -166,7 +160,13 @@ public class HanziBuilder {
                 }
             }
         }
-        return Util.unicodeKeyToString("U+3000"); // no match found, default to white space
+
+        hanziArt.regenerateStrokeKeySet(strokeCount);
+        System.out.println("Size: " + hanziArt.getStrokeKeys().size());
+        int randomIndex = HanziArt.random.nextInt(hanziArt.getStrokeKeys().size());
+        String unicodeKey = (String) hanziArt.getStrokeKeys().toArray()[randomIndex];
+
+        return Util.unicodeKeyToString(unicodeKey); // no match found, default to random from list
     }
 
     public boolean processUnicodeKey(String unicodeKey, int strokeCount, Map<String, String> fourCornerCodeMap, HanziArt hanziArt) {

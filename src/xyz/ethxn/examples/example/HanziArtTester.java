@@ -17,7 +17,6 @@ public class HanziArtTester {
 
         HanziArt ha = new HanziArt(image, outputWidth, unihanDictionaryPath, unihanIRGSourcesPath);
         ha.setBuildType(1); // 0 = fast, 1 = complex
-        ha.setBias(1.0, 1.0, 1.4);
         ha.setMaxStrokeCount(20);
         ha.build(true);
         System.out.println(ha.getOutputArt());
@@ -30,7 +29,6 @@ public class HanziArtTester {
 
         ha2.setMaxStrokeCount(20); // lower *usually* equals more clarity
         ha2.setBuildType(0); // 0 = fast, 1 = complex
-        ha2.setBias(1.02, 1.2, 1.05); // values farther from 1 can increase processing time
         ha2.build(true);
         System.out.println(ha2.getOutputArt());
     }
